@@ -26,8 +26,8 @@ The application works by reading the log file and decoding the data into a human
 To install the Log Decoder, you need to have Python 3 installed on your computer. Afterwards, clone the repository and install the required dependencies using the following commands:
 
 ```bash
-git clone https://github.com/BlueVigil/LogDecoder.git
-cd LogDecoder
+git clone https://github.com/colerottenberg/blackbox_decoder.git
+cd backbox_decoder
 ```
 
 ### Poetry

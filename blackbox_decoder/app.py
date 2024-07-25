@@ -275,8 +275,12 @@ class MainWindow(QMainWindow):
             self.file_path.setText(file_name)
 
 
-if __name__ == "__main__":
+def main():
     app = QApplication([])
     window = MainWindow()
     window.show()
     app.exec()
+
+
+if __name__ == "__main__":
+    main()
