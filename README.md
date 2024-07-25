@@ -1,7 +1,7 @@
 # BlackBox 
 
 <!-- ! Add a badge for the workflow -->
-<!-- ![workflow](https://github.com/BlueVigil/LogDecoder/actions/workflows/python-app.yml/badge.svg) -->
+![workflow](https://github.com/colerottenberg/blackbox_decoder/actions/workflows/tests.yml/badge.svg)
 
 ## Table of Contents
 - [BlackBox](#blackbox)
