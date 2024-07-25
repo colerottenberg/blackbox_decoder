@@ -25,14 +25,28 @@ The application works by reading the log file and decoding the data into a human
 
 To install the Log Decoder, you need to have Python 3 installed on your computer. Afterwards, clone the repository and install the required dependencies using the following commands:
 
+### Pip
+
+The BlackBox application can be installed using pip. To install the application, run the following command:
+
 ```bash
-git clone https://github.com/colerottenberg/blackbox_decoder.git
-cd backbox_decoder
+pip install blackbox-decoder
+```
+
+To run the application, use the following command:
+
+```bash
+blackbox-decoder
 ```
 
 ### Poetry
 
 The BlackBox application uses Poetry to manage its dependencies. To install the dependencies, run the following command:
+
+```bash
+git clone https://github.com/colerottenberg/blackbox_decoder.git
+cd blackbox_decoder
+```
 
 ```bash
 poetry install
