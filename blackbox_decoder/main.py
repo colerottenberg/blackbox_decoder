@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from bitstring import BitArray, Bits, BitStream, pack
 
-from blackbox_decoder.app import app
+# from blackbox_decoder.app import app
 from blackbox_decoder.log import Log, FlightRecord
 from blackbox_decoder.parse import parse_log
 

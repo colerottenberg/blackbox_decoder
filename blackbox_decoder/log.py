@@ -146,7 +146,7 @@ class Detail(BaseLog):
         shift = (
             8 * LOG_PACKET_SIZES["Detail"]
         ) % bit_sum  # WE SHIFT THE BITS TO ALIGN THE DATA
-        self.s.pos = shift
+        # self.s.pos = shift
         # WE parse the data using the accepted type and size using the size_struct
         for key, value in size_struct.items():
             self.structure[key] = self.s.read(value[0])
@@ -168,24 +168,24 @@ class Detail(BaseLog):
             Dict[str, (str, int)]: A dictionary where the key is the name of the field and the value is a tuple
         """
         return {
-            "lowPower": ("uint:1", 1),
-            "chgState": ("uint:1", 1),
-            "chgAcok": ("uint:1", 1),
-            "outVoltX10": ("uint:12", 12),
-            "battVoltX10": ("uint:12", 12),
-            "tethVoltX10": ("uint:12", 12),
-            "tethCurrentX10": ("int:12", 12),
-            "battDrain": ("uint:1", 1),
-            "battKill": ("uint:1", 1),
-            "battOn": ("uint:1", 1),
-            "tethOn": ("uint:1", 1),
-            "tethGood": ("uint:1", 1),
-            "tethActive": ("uint:1", 1),
-            "tethReady": ("uint:1", 1),
-            "type": ("uint:3", 3),
-            "entryTimeMsecs": ("uint:32", 32),
             "recNumb": ("uint:32", 32),
+            "entryTimeMsecs": ("uint:32", 32),
+            "type": ("uint:3", 3),
+            "tethReady": ("uint:1", 1),
+            "tethActive": ("uint:1", 1),
+            "tethGood": ("uint:1", 1),
+            "tethOn": ("uint:1", 1),
+            "battOn": ("uint:1", 1),
+            "battKill": ("uint:1", 1),
+            "battDrain": ("uint:1", 1),
+            "tethCurrentX10": ("int:12", 12),
+            "tethVoltX10": ("uint:12", 12),
+            "battVoltX10": ("uint:12", 12),
+            "outVoltX10": ("uint:12", 12),
+            "battOutKill": ("uint:1", 1),
+            "filler": ("uint:2", 2),
         }
+
 
 
 class Rollup(BaseLog):
@@ -245,12 +245,16 @@ class Rollup(BaseLog):
             "battVoltX10Peak": ("uint:12", 12),
             "outVoltX10Avg": ("uint:12", 12),
             "outVoltX10Peak": ("uint:12", 12),
-            "chgAcok": ("uint:1", 1),
-            "chgAcokChanges": ("uint:6", 6),
-            "chgStatus": ("uint:1", 1),
-            "chgStatusChanges": ("uint:6", 6),
-            "lowPower": ("uint:1", 1),
-            "lowPowerChanges": ("uint:6", 6),
+            # "chgAcok": ("uint:1", 1),
+            # "chgAcokChanges": ("uint:6", 6),
+            # "chgStatus": ("uint:1", 1),
+            # "chgStatusChanges": ("uint:6", 6),
+            # "lowPower": ("uint:1", 1),
+            # "lowPowerChanges": ("uint:6", 6),
+            "battOutKill": ("uint:1", 1),
+            "battOutKillChanges": ("uint:6", 6),
+            "filler": ("uint:8", 8),
+            "filler2": ("uint:6", 6),
             "maxTemp": ("int:8", 8),
             "filler3": ("int:8", 8),
         }
@@ -328,11 +332,11 @@ class FlightInfo(BaseLog):
             "numbBattOnChanges": ("uint:8", 8),
             "numbBattKillChanges": ("uint:8", 8),
             "numbBattDrainChanges": ("uint:8", 8),
-            "numbChgStatChanges": ("uint:8", 8),
-            "numbChgAcokChanges": ("uint:8", 8),
-            "numbLowPwrChanges": ("uint:8", 8),
-            "minTemp": ("int:12", 12),
+            "numbBattOutKillChanges": ("uint:8", 8),
+            "filler": ("uint:8", 8),
+            "filler2": ("uint:8", 8),
             "maxTemp": ("int:12", 12),
+            "minTemp": ("int:12", 12),
             "data": ("bytes:7", 7 * 8),
         }
 
