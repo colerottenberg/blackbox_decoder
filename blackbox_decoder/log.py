@@ -6,7 +6,7 @@ import pandas as pd
 
 from bitstring import BitStream
 
-from BlackBox.parse import parse_log
+from blackbox_decoder.parse import parse_log
 
 SIGMA = 8
 

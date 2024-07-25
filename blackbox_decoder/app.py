@@ -22,10 +22,8 @@ from matplotlib.backends.backend_qt5agg import (
 )
 from matplotlib.figure import Figure
 
-import pandas as pd
-
 # Importing the decoding libraries
-from BlackBox.log import *
+from blackbox_decoder.log import *
 
 
 class MplCanvas(FigureCanvas):
