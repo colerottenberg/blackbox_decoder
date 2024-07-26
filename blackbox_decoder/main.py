@@ -14,3 +14,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     log = Log(args.log)
     record = FlightRecord(log)
+    print(record.to_dataframe())

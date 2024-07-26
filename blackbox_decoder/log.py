@@ -414,98 +414,73 @@ class FlightRecord:
             self.log = Log(input)
         else:
             self.log = input
+        
+        self.splice()
+        # sort the flights by size in descending order
+        self.flights.sort(key=len, reverse=True)
 
-        minute_flights: List[List[Rollup]] = self.split_flights(self.log.minute_rollup)
 
-        second_flights: List[List[Rollup]] = self.split_flights(self.log.second_rollup)
+    def __len__(self):
+        """
+        This method returns the number of flights in the FlightRecord
 
-        self.flights: List[Log] = self.combining_logs(
-            minute_flights=self.log.minute_rollup, second_flights=self.log.second_rollup
-        )
+        Args:
+            None
 
-    def to_dataframe(self) -> pd.DataFrame:
+        Returns:
+            int: The number of flights in the FlightRecord
+        """
+        return len(self.flights)
+    
+
+
+    def to_dataframe(self, number_of_flights: int = 1) -> List[pd.DataFrame]:
         """
         This method converts the flight records into a pandas DataFrame
         The index of the DataFrame is the recNumb field in the data dictionary
 
         Args:
-            None
+            number_of_flights (int): The number of flights to convert to a DataFrame
 
         Returns:
-            pd.DataFrame: A pandas DataFrame containing the flight records
+            List[pd.DataFrame]: A list of pandas DataFrames 
         """
-        df: pd.DataFrame = pd.DataFrame([flight.structure for flight in self.flights])
-        return df
+        flights = []
+        for i in range(number_of_flights):
+            # Only use rollup data
+            # TODO: Add detail data
+            flight = [x for x in self.flights[i] if x.__class__.__name__ == "Rollup"]
+            flight.sort(key=lambda x: x.structure["recNumb"])
+            data = {key: [] for key in flight[0].structure.keys()}
+            for record in flight:
+                for key, value in record.structure.items():
+                    data[key].append(value)
 
-    def combining_logs(
-        self, minute_flights: List[Rollup], second_flights: List[Rollup]
-    ) -> List[Log]:
-        """
-        This method combines the second and minute rollup logs for each flight allowing for better analysis
-
-        Args:
-            minute_flights (List[List[Rollup]]): A list of minute rollup logs for each flight
-            second_flights (List[List[Rollup]]): A list of second rollup logs for each flight
-
-        Returns:
-            List[List[Log]]: A list of Log objects where each object contains the data for each fligh
-        """
-
-        # Based on the mean of each minute rollup log, we can determine which second rollup logs belong to each flight
-
-        # We can then splice together the second and minute rollup logs for each flight
-
-        # @TODO: Fix the decoding of the minute rollup logs and actually combine the logs
-
-        combined_flights: List[Log] = []
-        combined_flights = second_flights
-        combined_flights.sort(key=lambda x: x.structure["recNumb"])
-        return combined_flights
-
-    def split_flights(self, rollup_log: List[Rollup]) -> List[List[Rollup]]:
-        """
-        This method splits the log into multiple flights
-
-        This method splits the log into multiple flights. The minute rollup logs are used to determine the start and end of each flight. The method returns a list of Log objects where each object contains the data for each flight.
-
-        Args:
-            None
-
-        Returns:
-            List[Log]: A list of Log objects where each object contains the data for each flight
-        """
-        # We first need to determine the start and end of each flight using the minute rollup logs
-        # We can then splice together the second and minute rollup logs for each flight
-        # We can then return a list of Log objects where each object contains the data for each flight
-
-        # We need to combine the second and minute rollup logs for each flight
-        rollups: List[Rollup] = rollup_log
-
-        # We first need to sort the list based on the recNumb
-        rollups.sort(key=lambda x: x.structure["recNumb"])
-
-        differences = np.diff([x.structure["recNumb"] for x in rollups])
-
-        mean_diff = np.mean(differences)
-        std_diff = np.std(differences)
-
-        Threshold = mean_diff + SIGMA * std_diff
-
-        # Using our 2 Sigma rule, if a difference is greater than 2 standard deviations from the mean, we can assume that it is the start of a new flight.
-        # We will mark each difference greater than the threshold as the start of a new flight
-
-        indices = []
-        for i, diff in enumerate(differences):
-            if diff > Threshold:
-                indices.append(i)
-
-        # We can now split the rollups into different flights
-        flights: List[List[Rollup]] = []
-        start = 0
-        for index in indices:
-            flights.append(rollups[start:index])
-            start = index
-
-        flights.append(rollups[start:])
+            df = pd.DataFrame(data)
+            df.set_index("recNumb", inplace=True)
+            flights.append(df)
 
         return flights
+
+    def splice(self):
+        """
+        This method will use the flight events begRecNumb to determine each flight
+        We will loop though the flight events and hold the entry of the begRecNumb and the next begRecNumb in the flight events
+        If there are items within the comb list that are between the two begRecNumb values, we will add them to the flight list
+        """
+
+        comb: List[BaseLog] = self.log.milli_detail + self.log.minute_rollup + self.log.second_rollup
+        comb.sort(key=lambda x: x.structure["recNumb"])
+
+        self.flights = []
+        for i in range(len(self.log.flight_events) - 1):
+            start = self.log.flight_events[i].structure["begRecNumb"]
+            end = self.log.flight_events[i + 1].structure["begRecNumb"]
+
+            flight = [x for x in comb if start <= x.structure["recNumb"] < end]
+
+            if len(flight) > 0:
+                self.flights.append(flight)
+            
+
+
