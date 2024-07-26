@@ -13,7 +13,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     log = Log(args.log)
-    if log:
-        log.write_csv()
-
     record = FlightRecord(log)

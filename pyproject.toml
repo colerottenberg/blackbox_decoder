@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "blackbox-decoder"
 version = "0.2.0"
-description = ""
+description = "The blackbox is a loggging system used within our autonomous drone system. The decoder is a tool to help decode the logs from their hex format into a human readable format."
 authors = ["Cole Rottenberg <Cole.rottenberg@gmail.com>"]
 readme = "README.md"
 
@@ -16,6 +16,8 @@ pandas = "^2.2.2"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
 
+black = "^24.4.2"
+flake8 = "^7.1.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
