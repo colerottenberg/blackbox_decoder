@@ -85,7 +85,8 @@ class PlotWindow(QMainWindow):
         screen_rect = screen.availableGeometry()
         self.setGeometry(0, 0, screen_rect.width(), screen_rect.height())
 
-        df = flight_record.to_dataframe()
+        # TODO: Add a functionality to handle multiple flight records
+        df = flight_record.to_dataframe()[0]
 
         layout = QVBoxLayout()
 
@@ -102,37 +103,37 @@ class PlotWindow(QMainWindow):
         # Plotting the data
         # Voltage Plot
         df.plot(
-            x="recNumb",
+            x="entryTimeMsecs",
             y="outVoltX10Avg",
             ax=self.flight_record_canvas.ax1,
             label="outVoltX10Avg",
         )
         df.plot(
-            x="recNumb",
+            x="entryTimeMsecs",
             y="outVoltX10Peak",
             ax=self.flight_record_canvas.ax1,
             label="outVoltX10Peak",
         )
         df.plot(
-            x="recNumb",
+            x="entryTimeMsecs",
             y="tethVoltX10Avg",
             ax=self.flight_record_canvas.ax1,
             label="tethVoltX10Avg",
         )
         df.plot(
-            x="recNumb",
+            x="entryTimeMsecs",
             y="tethVoltX10Peak",
             ax=self.flight_record_canvas.ax1,
             label="tethVoltX10Peak",
         )
         df.plot(
-            x="recNumb",
+            x="entryTimeMsecs",
             y="battVoltX10Avg",
             ax=self.flight_record_canvas.ax1,
             label="battVoltX10Avg",
         )
         df.plot(
-            x="recNumb",
+            x="entryTimeMsecs",
             y="battVoltX10Peak",
             ax=self.flight_record_canvas.ax1,
             label="battVoltX10Peak",
@@ -140,13 +141,13 @@ class PlotWindow(QMainWindow):
 
         # Current Plot
         df.plot(
-            x="recNumb",
+            x="entryTimeMsecs",
             y="tethCurrentX10Avg",
             ax=self.flight_record_canvas.ax2,
             label="tethCurrentX10Avg",
         )
         df.plot(
-            x="recNumb",
+            x="entryTimeMsecs",
             y="tethCurrentX10Peak",
             ax=self.flight_record_canvas.ax2,
             label="tethCurrentX10Peak",
@@ -155,28 +156,28 @@ class PlotWindow(QMainWindow):
         # Tether Flags Plot
         # These are discrete values of 0 or 1 and we can treat them as a step plot to show when the flags are on or off
         df.plot(
-            x="recNumb",
+            x="entryTimeMsecs",
             y="tethReady",
             ax=self.flight_record_canvas.ax3,
             label="tethReady",
             drawstyle="steps-post",
         )
         df.plot(
-            x="recNumb",
+            x="entryTimeMsecs",
             y="tethActive",
             ax=self.flight_record_canvas.ax3,
             label="tethActive",
             drawstyle="steps-post",
         )
         df.plot(
-            x="recNumb",
+            x="entryTimeMsecs",
             y="tethGood",
             ax=self.flight_record_canvas.ax3,
             label="tethGood",
             drawstyle="steps-post",
         )
         df.plot(
-            x="recNumb",
+            x="entryTimeMsecs",
             y="tethOn",
             ax=self.flight_record_canvas.ax3,
             label="tethOn",
@@ -186,21 +187,21 @@ class PlotWindow(QMainWindow):
         # Battery Flags Plot
         # These are discrete values of 0 or 1 and we can treat them as a step plot to show when the flags are on or off
         df.plot(
-            x="recNumb",
+            x="entryTimeMsecs",
             y="battOn",
             ax=self.flight_record_canvas.ax4,
             label="battOn",
             drawstyle="steps-post",
         )
         df.plot(
-            x="recNumb",
+            x="entryTimeMsecs",
             y="battDrain",
             ax=self.flight_record_canvas.ax4,
             label="battDrain",
             drawstyle="steps-post",
         )
         df.plot(
-            x="recNumb",
+            x="entryTimeMsecs",
             y="battKill",
             ax=self.flight_record_canvas.ax4,
             label="battKill",

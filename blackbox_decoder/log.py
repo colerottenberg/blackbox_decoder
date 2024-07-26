@@ -457,7 +457,7 @@ class FlightRecord:
                     data[key].append(value)
 
             df = pd.DataFrame(data)
-            df.set_index("recNumb", inplace=True)
+            # df.set_index("recNumb", inplace=True)
             flights.append(df)
 
         return flights
