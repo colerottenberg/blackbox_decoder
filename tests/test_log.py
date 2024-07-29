@@ -1,4 +1,3 @@
-import pytest
 from blackbox_decoder.log import GeneralInfo, Detail, Rollup, FlightInfo, Log
 from blackbox_decoder.parse import parse_log
 
