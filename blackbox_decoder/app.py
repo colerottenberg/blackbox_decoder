@@ -25,6 +25,9 @@ from matplotlib.figure import Figure
 # Importing the decoding libraries
 from blackbox_decoder.log import *
 
+import datetime
+from datetime import timedelta
+
 
 class MplCanvas(FigureCanvas):
     def __init__(self, parent=None, width=5, height=4, dpi=100):
@@ -74,9 +77,9 @@ class FlightRecordCanvas(FigureCanvas):
 
 
 class PlotWindow(QMainWindow):
-    def __init__(self, flight_record: FlightRecord):
+    def __init__(self, flight_record: FlightRecord, flight_number: int = 1):
         super().__init__()
-        self.setWindowTitle("Flight Data")
+        self.setWindowTitle(f"Flight Record {flight_number}")
         self.setAutoFillBackground(True)
 
         # Setting size to the entire screen
@@ -86,7 +89,7 @@ class PlotWindow(QMainWindow):
         self.setGeometry(0, 0, screen_rect.width(), screen_rect.height())
 
         # TODO: Add a functionality to handle multiple flight records
-        df = flight_record.to_dataframe()[0]
+        df = flight_record.to_dataframe(flight_number-1)
 
         layout = QVBoxLayout()
 
@@ -133,35 +136,105 @@ class PlotWindow(QMainWindow):
 
 
 class MainWindow(QMainWindow):
+    """
+    The MainWindow is the... main window of the application and contains the following design:
+    1. A title
+    At the bottom of the window, there are two buttons:
+    1. Browse Button: Opens a file dialog to select the log file. When the file is selected, and the file is initially decoded, the button will display the file name. If the file does not decode correctly, the button will display an error message.
+    If the file is decoded properly, the widgets above will allow for the user to decode the log file in a more advanced manner. allowing for a greater number of options. That can help the user to better understand the data.
+    These options and displays include:
+    - The number of recorded flights in the log file
+    - A checkbox that allows the user to view the data either in separate windows or concatenated into one window.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.setWindowTitle("BlackBox")
         self.setAutoFillBackground(True)
 
+        # Setting size to a large window
+        self.setGeometry(100, 100, 400, 300)
+
+        # Main Layout is a vertical layout
         pagelayout = QVBoxLayout()
+
+        # The button layout is a horizontal layout that sits at the bottom of the window
         button_layout = QHBoxLayout()
 
+        # The summary layout is a vertical layout that sits at the top of the window
+        summary_layout = QGridLayout()
+
+        # Setting up the settings widgets
+        """
+        The settings around decoding the log file are as follows:
+        - Choose the number of flights to decode (default is the latest flight)
+        - A checkbox to choose whether to decode the log file in a single window or multiple windows
+        """
+        settings_layout = QGridLayout()
+
         # Adding the Plot Window
-        self.plot_window: PlotWindow = None
+        self.plot_windows: List[PlotWindow] = []
+
+        # Internal Variables
         self.flight_record = None
         self.file_name = None
 
+        self.flight_count: int = 0
+        self.num_flights: int = 1;
+
         # Creating the widgets
+        # The browsing and decoding buttons
         self.browse_button = QPushButton("Browse")
         self.decode_button = QPushButton("Decode")
-        self.file_path = QLabel("No file selected")
-        self.flight_count = QLabel("No flight data")
+
+        # The settings widgets
+        self.drone_name_label = QLabel("Drone Name:")
+        self.drone_name_plc = QLabel("No flight data")
+
+        self.flight_count_label = QLabel("Number of Flights:")
+        # Dropdown menu for the number of flights
+        self.flight_count_plc = QLabel("No flight data")
+        # Adding Flight Times and Labels
+        self.flight_times_label = QLabel("Flight Time:")
+        self.flight_time: timedelta = timedelta()
+        self.flight_time_placeholder = QLabel("No flight data")
+
+        # Settings widgets
+        self.checkbox = QCheckBox("Decode Multiple Flights")
+        self.num_flights_selector = QSpinBox()
+        self.num_flights_selector.setMinimum(1)
+        self.num_flights_selector.setMaximum(10)
+         
+
 
         # Adding the widgets to the layout
         button_layout.addWidget(self.browse_button)
         button_layout.addWidget(self.decode_button)
-        pagelayout.addWidget(self.file_path)
+
+        # Adding the settings widgets
+        summary_layout.addWidget(self.drone_name_label, 0, 0)
+        summary_layout.addWidget(self.drone_name_plc, 0, 1)
+        summary_layout.addWidget(self.flight_count_label, 1, 0)
+        summary_layout.addWidget(self.flight_count_plc, 1, 1)
+        summary_layout.addWidget(self.flight_times_label, 2, 0)
+        summary_layout.addWidget(self.flight_time_placeholder, 2, 1)
+
+        seperator = QFrame()
+        seperator.setFrameShape(QFrame.Shape.HLine)
+        seperator.setFrameShadow(QFrame.Shadow.Sunken)
+        seperator.setStyleSheet("background-color: black; height: 2px;")
+
+        settings_layout.addWidget(self.checkbox, 0, 0)
+        settings_layout.addWidget(self.num_flights_selector, 0, 1)
+
+        pagelayout.addLayout(summary_layout)
+        pagelayout.addWidget(seperator)
+        pagelayout.addLayout(settings_layout)
         pagelayout.addLayout(button_layout)
 
         # Describing the actions of the buttons
         # Open File Dialog
         self.browse_button.clicked.connect(self.open_file_dialog)
-        self.decode_button.clicked.connect(self.decode_log_file)
+        self.decode_button.clicked.connect(self.show_plot_window)
 
         # Setting the layout
         widget = QWidget()
@@ -177,9 +250,52 @@ class MainWindow(QMainWindow):
             return
         # Decoding the log file
         self.flight_record = FlightRecord(self.file_name)
-        if self.plot_window is None:
-            self.plot_window = PlotWindow(self.flight_record)
-        self.plot_window.show()
+
+        if not self.flight_record:
+            QMessageBox.warning(self, "Error", "Error decoding the log file")
+            self.browse_button.setText("Browse")
+            return
+        # Recording the settings and stats of the flight record
+        self.flight_count = len(self.flight_record)
+        self.flight_time = self.flight_record.get_flight_time()
+        self.drone_name: str = self.flight_record.get_drone_name()
+        self.show_summary()
+
+    def show_summary(self):
+        """
+        Shows the summary of the flight record
+        """
+        if self.flight_record is None:
+            QMessageBox.warning(self, "Error", "No flight record to display")
+            return
+
+        # Set the flight count and flight time placeholders
+        self.drone_name_plc.setText(self.drone_name)
+        self.flight_count_plc.setText(str(self.flight_count))
+        self.flight_time_placeholder.setText(str(self.flight_time))
+    
+    def show_plot_window(self):
+        """
+        Shows the plot windows of however many flights are selected
+        """
+        if self.flight_record is None:
+            QMessageBox.warning(self, "Error", "No flight record to display")
+            return
+        
+        if len(self.plot_windows) > 0:
+            for window in self.plot_windows:
+                window.close()
+            # Clear the plot windows
+            self.plot_windows = []
+
+        if self.checkbox.isChecked():
+            self.plot_windows = [PlotWindow(self.flight_record, i+1) for i in range(self.num_flights_selector.value())]
+        else:
+            window = PlotWindow(self.flight_record, self.num_flights_selector.value())
+            self.plot_windows = [window]
+        for window in self.plot_windows:
+            window.show()
+
 
     def open_file_dialog(self):
         """
@@ -192,7 +308,10 @@ class MainWindow(QMainWindow):
         # Removing the file path and keeping only the file name
         file_name = file_name.split("/")[-1]
         if file_name:
-            self.file_path.setText(file_name)
+            self.browse_button.setText(file_name)
+        
+        # Decoding the log file
+        self.decode_log_file()
 
 
 def main():
