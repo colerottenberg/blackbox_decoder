@@ -109,6 +109,18 @@ class GeneralInfo(BaseLog):
             "version": ("uint:8", 8),
             "ID": ("bytes:10", 10 * 8),
         }
+    
+    def get_drone_name(self) -> str:
+        """
+        This method returns the name of the drone
+
+        Args:
+            None
+
+        Returns:
+            str: The name of the drone
+        """
+        return self.structure["ID"]
 
 
 class Detail(BaseLog):
@@ -389,6 +401,18 @@ class Log:
     def __bool__(self):
         # If the size of the data is 0, return False
         return bool(self.data)
+    
+    def get_name(self) -> str:
+        """
+        This method returns the name of the drone
+
+        Args:
+            None
+
+        Returns:
+            str: The name of the drone
+        """
+        return self.gen_info.get_drone_name()
 
 
 class FlightRecord:
@@ -431,6 +455,31 @@ class FlightRecord:
             int: The number of flights in the FlightRecord
         """
         return len(self.flights)
+
+    def get_flight_time(self) -> datetime.timedelta:
+        """
+        This method returns the total flight time of the drone
+
+        Args:
+            None
+
+        Returns:
+            datetime.timedelta: The total flight time of the drone
+        """
+        return self.log.flight_time
+    
+
+    def get_drone_name(self) -> str:
+        """
+        This method returns the name of the drone
+
+        Args:
+            None
+
+        Returns:
+            str: The name of the drone
+        """
+        return self.log.get_name()
     
 
 
