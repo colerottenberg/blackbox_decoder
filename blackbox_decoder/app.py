@@ -101,112 +101,30 @@ class PlotWindow(QMainWindow):
         layout.addWidget(self.flight_record_canvas)
 
         # Plotting the data
-        # Voltage Plot
-        df.plot(
-            x="entryTimeMsecs",
-            y="outVoltX10Avg",
-            ax=self.flight_record_canvas.ax1,
-            label="outVoltX10Avg",
-        )
-        df.plot(
-            x="entryTimeMsecs",
-            y="outVoltX10Peak",
-            ax=self.flight_record_canvas.ax1,
-            label="outVoltX10Peak",
-        )
-        df.plot(
-            x="entryTimeMsecs",
-            y="tethVoltX10Avg",
-            ax=self.flight_record_canvas.ax1,
-            label="tethVoltX10Avg",
-        )
-        df.plot(
-            x="entryTimeMsecs",
-            y="tethVoltX10Peak",
-            ax=self.flight_record_canvas.ax1,
-            label="tethVoltX10Peak",
-        )
-        df.plot(
-            x="entryTimeMsecs",
-            y="battVoltX10Avg",
-            ax=self.flight_record_canvas.ax1,
-            label="battVoltX10Avg",
-        )
-        df.plot(
-            x="entryTimeMsecs",
-            y="battVoltX10Peak",
-            ax=self.flight_record_canvas.ax1,
-            label="battVoltX10Peak",
-        )
 
-        # Current Plot
-        df.plot(
-            x="entryTimeMsecs",
-            y="tethCurrentX10Avg",
-            ax=self.flight_record_canvas.ax2,
-            label="tethCurrentX10Avg",
-        )
-        df.plot(
-            x="entryTimeMsecs",
-            y="tethCurrentX10Peak",
-            ax=self.flight_record_canvas.ax2,
-            label="tethCurrentX10Peak",
-        )
+        x: str = "entryTimeMsecs"
+        voltage: List[str] = [
+                "outVoltX10Avg",
+                "outVoltX10Peak",
+                "tethVoltX10Avg",
+                "tethVoltX10Peak",
+                "battVoltX10Avg",
+                "battVoltX10Peak",
+        ]
+        for v in voltage:
+            df.plot(x=x, y=v, ax=self.flight_record_canvas.ax1, label=v)
 
-        # Tether Flags Plot
-        # These are discrete values of 0 or 1 and we can treat them as a step plot to show when the flags are on or off
-        df.plot(
-            x="entryTimeMsecs",
-            y="tethReady",
-            ax=self.flight_record_canvas.ax3,
-            label="tethReady",
-            drawstyle="steps-post",
-        )
-        df.plot(
-            x="entryTimeMsecs",
-            y="tethActive",
-            ax=self.flight_record_canvas.ax3,
-            label="tethActive",
-            drawstyle="steps-post",
-        )
-        df.plot(
-            x="entryTimeMsecs",
-            y="tethGood",
-            ax=self.flight_record_canvas.ax3,
-            label="tethGood",
-            drawstyle="steps-post",
-        )
-        df.plot(
-            x="entryTimeMsecs",
-            y="tethOn",
-            ax=self.flight_record_canvas.ax3,
-            label="tethOn",
-            drawstyle="steps-post",
-        )
+        current: List[str] = ["tethCurrentX10Avg", "tethCurrentX10Peak"]
+        for c in current:
+            df.plot(x=x, y=c, ax=self.flight_record_canvas.ax2, label=c)
 
-        # Battery Flags Plot
-        # These are discrete values of 0 or 1 and we can treat them as a step plot to show when the flags are on or off
-        df.plot(
-            x="entryTimeMsecs",
-            y="battOn",
-            ax=self.flight_record_canvas.ax4,
-            label="battOn",
-            drawstyle="steps-post",
-        )
-        df.plot(
-            x="entryTimeMsecs",
-            y="battDrain",
-            ax=self.flight_record_canvas.ax4,
-            label="battDrain",
-            drawstyle="steps-post",
-        )
-        df.plot(
-            x="entryTimeMsecs",
-            y="battKill",
-            ax=self.flight_record_canvas.ax4,
-            label="battKill",
-            drawstyle="steps-post",
-        )
+        tether_flags: List[str] = ["tethReady", "tethActive", "tethGood", "tethOn"]
+        for t in tether_flags:
+            df.plot(x=x, y=t, ax=self.flight_record_canvas.ax3, label=t, drawstyle="steps-post")
+
+        battery_flags: List[str] = ["battOn", "battDrain", "battKill"]
+        for b in battery_flags:
+            df.plot(x=x, y=b, ax=self.flight_record_canvas.ax4, label=b, drawstyle="steps-post")
 
         # Setting the layout
         widget = QWidget()
@@ -232,6 +150,7 @@ class MainWindow(QMainWindow):
         self.browse_button = QPushButton("Browse")
         self.decode_button = QPushButton("Decode")
         self.file_path = QLabel("No file selected")
+        self.flight_count = QLabel("No flight data")
 
         # Adding the widgets to the layout
         button_layout.addWidget(self.browse_button)
