@@ -77,9 +77,9 @@ class FlightRecordCanvas(FigureCanvas):
 
 
 class PlotWindow(QMainWindow):
-    def __init__(self, flight_record: FlightRecord):
+    def __init__(self, flight_record: FlightRecord, flight_number: int = 1):
         super().__init__()
-        self.setWindowTitle("Flight Data")
+        self.setWindowTitle(f"Flight Record {flight_number}")
         self.setAutoFillBackground(True)
 
         # Setting size to the entire screen
@@ -89,7 +89,7 @@ class PlotWindow(QMainWindow):
         self.setGeometry(0, 0, screen_rect.width(), screen_rect.height())
 
         # TODO: Add a functionality to handle multiple flight records
-        df = flight_record.to_dataframe()[0]
+        df = flight_record.to_dataframe(flight_number-1)
 
         layout = QVBoxLayout()
 
@@ -151,23 +151,35 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("BlackBox")
         self.setAutoFillBackground(True)
 
+        # Setting size to a large window
+        self.setGeometry(100, 100, 400, 300)
+
         # Main Layout is a vertical layout
         pagelayout = QVBoxLayout()
 
         # The button layout is a horizontal layout that sits at the bottom of the window
         button_layout = QHBoxLayout()
 
-        # The settings layout is a vertical layout that sits at the top of the window
+        # The summary layout is a vertical layout that sits at the top of the window
+        summary_layout = QGridLayout()
+
+        # Setting up the settings widgets
+        """
+        The settings around decoding the log file are as follows:
+        - Choose the number of flights to decode (default is the latest flight)
+        - A checkbox to choose whether to decode the log file in a single window or multiple windows
+        """
         settings_layout = QGridLayout()
 
         # Adding the Plot Window
-        self.plot_window: PlotWindow = None
+        self.plot_windows: List[PlotWindow] = []
 
         # Internal Variables
         self.flight_record = None
         self.file_name = None
 
         self.flight_count: int = 0
+        self.num_flights: int = 1;
 
         # Creating the widgets
         # The browsing and decoding buttons
@@ -185,7 +197,13 @@ class MainWindow(QMainWindow):
         self.flight_times_label = QLabel("Flight Time:")
         self.flight_time: timedelta = timedelta()
         self.flight_time_placeholder = QLabel("No flight data")
-        
+
+        # Settings widgets
+        self.checkbox = QCheckBox("Decode Multiple Flights")
+        self.num_flights_selector = QSpinBox()
+        self.num_flights_selector.setMinimum(1)
+        self.num_flights_selector.setMaximum(10)
+         
 
 
         # Adding the widgets to the layout
@@ -193,14 +211,23 @@ class MainWindow(QMainWindow):
         button_layout.addWidget(self.decode_button)
 
         # Adding the settings widgets
-        settings_layout.addWidget(self.drone_name_label, 0, 0)
-        settings_layout.addWidget(self.drone_name_plc, 0, 1)
-        settings_layout.addWidget(self.flight_count_label, 1, 0)
-        settings_layout.addWidget(self.flight_count_plc, 1, 1)
-        settings_layout.addWidget(self.flight_times_label, 2, 0)
-        settings_layout.addWidget(self.flight_time_placeholder, 2, 1)
+        summary_layout.addWidget(self.drone_name_label, 0, 0)
+        summary_layout.addWidget(self.drone_name_plc, 0, 1)
+        summary_layout.addWidget(self.flight_count_label, 1, 0)
+        summary_layout.addWidget(self.flight_count_plc, 1, 1)
+        summary_layout.addWidget(self.flight_times_label, 2, 0)
+        summary_layout.addWidget(self.flight_time_placeholder, 2, 1)
 
+        seperator = QFrame()
+        seperator.setFrameShape(QFrame.Shape.HLine)
+        seperator.setFrameShadow(QFrame.Shadow.Sunken)
+        seperator.setStyleSheet("background-color: black; height: 2px;")
 
+        settings_layout.addWidget(self.checkbox, 0, 0)
+        settings_layout.addWidget(self.num_flights_selector, 0, 1)
+
+        pagelayout.addLayout(summary_layout)
+        pagelayout.addWidget(seperator)
         pagelayout.addLayout(settings_layout)
         pagelayout.addLayout(button_layout)
 
@@ -249,11 +276,26 @@ class MainWindow(QMainWindow):
     
     def show_plot_window(self):
         """
-        Shows the plot window
+        Shows the plot windows of however many flights are selected
         """
-        if self.plot_window is None:
-            self.plot_window = PlotWindow(self.flight_record)
-        self.plot_window.show()
+        if self.flight_record is None:
+            QMessageBox.warning(self, "Error", "No flight record to display")
+            return
+        
+        if len(self.plot_windows) > 0:
+            for window in self.plot_windows:
+                window.close()
+            # Clear the plot windows
+            self.plot_windows = []
+
+        if self.checkbox.isChecked():
+            self.plot_windows = [PlotWindow(self.flight_record, i+1) for i in range(self.num_flights_selector.value())]
+        else:
+            window = PlotWindow(self.flight_record, self.num_flights_selector.value())
+            self.plot_windows = [window]
+        for window in self.plot_windows:
+            window.show()
+
 
     def open_file_dialog(self):
         """

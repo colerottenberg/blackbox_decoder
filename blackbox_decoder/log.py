@@ -441,7 +441,7 @@ class FlightRecord:
         
         self.splice()
         # sort the flights by size in descending order
-        self.flights.sort(key=len, reverse=True)
+        self.flights.reverse()
 
 
     def __len__(self):
@@ -483,10 +483,9 @@ class FlightRecord:
     
 
 
-    def to_dataframe(self, number_of_flights: int = 1) -> List[pd.DataFrame]:
+    def to_dataframe(self, i: int = 0) -> pd.DataFrame:
         """
-        This method converts the flight records into a pandas DataFrame
-        The index of the DataFrame is the recNumb field in the data dictionary
+        This method converts the selected flight to a pandas DataFrame
 
         Args:
             number_of_flights (int): The number of flights to convert to a DataFrame
@@ -494,22 +493,18 @@ class FlightRecord:
         Returns:
             List[pd.DataFrame]: A list of pandas DataFrames 
         """
-        flights = []
-        for i in range(number_of_flights):
-            # Only use rollup data
-            # TODO: Add detail data
-            flight = [x for x in self.flights[i] if x.__class__.__name__ == "Rollup"]
-            flight.sort(key=lambda x: x.structure["recNumb"])
-            data = {key: [] for key in flight[0].structure.keys()}
-            for record in flight:
-                for key, value in record.structure.items():
-                    data[key].append(value)
+        # TODO: Add detail data
+        flight = [x for x in self.flights[i] if x.__class__.__name__ == "Rollup"]
+        flight.sort(key=lambda x: x.structure["recNumb"])
+        data = {key: [] for key in flight[0].structure.keys()}
+        for record in flight:
+            for key, value in record.structure.items():
+                data[key].append(value)
 
-            df = pd.DataFrame(data)
-            # df.set_index("recNumb", inplace=True)
-            flights.append(df)
+        df = pd.DataFrame(data)
+        # df.set_index("recNumb", inplace=True)
+        return df
 
-        return flights
 
     def splice(self):
         """
