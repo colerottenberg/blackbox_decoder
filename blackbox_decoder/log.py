@@ -109,7 +109,7 @@ class GeneralInfo(BaseLog):
             "version": ("uint:8", 8),
             "ID": ("bytes:10", 10 * 8),
         }
-    
+
     def get_drone_name(self) -> str:
         """
         This method returns the name of the drone
@@ -197,7 +197,6 @@ class Detail(BaseLog):
             "battOutKill": ("uint:1", 1),
             "filler": ("uint:2", 2),
         }
-
 
 
 class Rollup(BaseLog):
@@ -401,7 +400,7 @@ class Log:
     def __bool__(self):
         # If the size of the data is 0, return False
         return bool(self.data)
-    
+
     def get_name(self) -> str:
         """
         This method returns the name of the drone
@@ -438,11 +437,10 @@ class FlightRecord:
             self.log = Log(input)
         else:
             self.log = input
-        
+
         self.splice()
         # sort the flights by size in descending order
         self.flights.reverse()
-
 
     def __len__(self):
         """
@@ -467,7 +465,6 @@ class FlightRecord:
             datetime.timedelta: The total flight time of the drone
         """
         return self.log.flight_time
-    
 
     def get_drone_name(self) -> str:
         """
@@ -480,8 +477,6 @@ class FlightRecord:
             str: The name of the drone
         """
         return self.log.get_name()
-    
-
 
     def to_dataframe(self, i: int = 0) -> pd.DataFrame:
         """
@@ -491,7 +486,7 @@ class FlightRecord:
             number_of_flights (int): The number of flights to convert to a DataFrame
 
         Returns:
-            List[pd.DataFrame]: A list of pandas DataFrames 
+            List[pd.DataFrame]: A list of pandas DataFrames
         """
         # TODO: Add detail data
         flight = [x for x in self.flights[i] if x.__class__.__name__ == "Rollup"]
@@ -505,7 +500,6 @@ class FlightRecord:
         # df.set_index("recNumb", inplace=True)
         return df
 
-
     def splice(self):
         """
         This method will use the flight events begRecNumb to determine each flight
@@ -513,7 +507,9 @@ class FlightRecord:
         If there are items within the comb list that are between the two begRecNumb values, we will add them to the flight list
         """
 
-        comb: List[BaseLog] = self.log.milli_detail + self.log.minute_rollup + self.log.second_rollup
+        comb: List[BaseLog] = (
+            self.log.milli_detail + self.log.minute_rollup + self.log.second_rollup
+        )
         comb.sort(key=lambda x: x.structure["recNumb"])
 
         self.flights = []
@@ -525,6 +521,3 @@ class FlightRecord:
 
             if len(flight) > 0:
                 self.flights.append(flight)
-            
-
-

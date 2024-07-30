@@ -18,9 +18,19 @@ pytest = "^8.3.2"
 
 black = "^24.4.2"
 flake8 = "^7.1.0"
+numba = "^0.60.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 blackbox-decoder = "blackbox_decoder.app:main"
+
+[tool.poetry.extras]
+dev = ["pytest", "black", "flake8"]
+
+[tool.black]
+line-length = 88
+
+[tool.flake8]
+max-line-length = 88

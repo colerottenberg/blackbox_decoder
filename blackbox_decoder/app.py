@@ -89,7 +89,7 @@ class PlotWindow(QMainWindow):
         self.setGeometry(0, 0, screen_rect.width(), screen_rect.height())
 
         # TODO: Add a functionality to handle multiple flight records
-        df = flight_record.to_dataframe(flight_number-1)
+        df = flight_record.to_dataframe(flight_number - 1)
 
         layout = QVBoxLayout()
 
@@ -107,12 +107,12 @@ class PlotWindow(QMainWindow):
 
         x: str = "entryTimeMsecs"
         voltage: List[str] = [
-                "outVoltX10Avg",
-                "outVoltX10Peak",
-                "tethVoltX10Avg",
-                "tethVoltX10Peak",
-                "battVoltX10Avg",
-                "battVoltX10Peak",
+            "outVoltX10Avg",
+            "outVoltX10Peak",
+            "tethVoltX10Avg",
+            "tethVoltX10Peak",
+            "battVoltX10Avg",
+            "battVoltX10Peak",
         ]
         for v in voltage:
             df.plot(x=x, y=v, ax=self.flight_record_canvas.ax1, label=v)
@@ -123,11 +123,23 @@ class PlotWindow(QMainWindow):
 
         tether_flags: List[str] = ["tethReady", "tethActive", "tethGood", "tethOn"]
         for t in tether_flags:
-            df.plot(x=x, y=t, ax=self.flight_record_canvas.ax3, label=t, drawstyle="steps-post")
+            df.plot(
+                x=x,
+                y=t,
+                ax=self.flight_record_canvas.ax3,
+                label=t,
+                drawstyle="steps-post",
+            )
 
         battery_flags: List[str] = ["battOn", "battDrain", "battKill"]
         for b in battery_flags:
-            df.plot(x=x, y=b, ax=self.flight_record_canvas.ax4, label=b, drawstyle="steps-post")
+            df.plot(
+                x=x,
+                y=b,
+                ax=self.flight_record_canvas.ax4,
+                label=b,
+                drawstyle="steps-post",
+            )
 
         # Setting the layout
         widget = QWidget()
@@ -146,6 +158,7 @@ class MainWindow(QMainWindow):
     - The number of recorded flights in the log file
     - A checkbox that allows the user to view the data either in separate windows or concatenated into one window.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.setWindowTitle("BlackBox")
@@ -179,7 +192,7 @@ class MainWindow(QMainWindow):
         self.file_name = None
 
         self.flight_count: int = 0
-        self.num_flights: int = 1;
+        self.num_flights: int = 1
 
         # Creating the widgets
         # The browsing and decoding buttons
@@ -203,8 +216,6 @@ class MainWindow(QMainWindow):
         self.num_flights_selector = QSpinBox()
         self.num_flights_selector.setMinimum(1)
         self.num_flights_selector.setMaximum(10)
-         
-
 
         # Adding the widgets to the layout
         button_layout.addWidget(self.browse_button)
@@ -273,7 +284,7 @@ class MainWindow(QMainWindow):
         self.drone_name_plc.setText(self.drone_name)
         self.flight_count_plc.setText(str(self.flight_count))
         self.flight_time_placeholder.setText(str(self.flight_time))
-    
+
     def show_plot_window(self):
         """
         Shows the plot windows of however many flights are selected
@@ -281,7 +292,7 @@ class MainWindow(QMainWindow):
         if self.flight_record is None:
             QMessageBox.warning(self, "Error", "No flight record to display")
             return
-        
+
         if len(self.plot_windows) > 0:
             for window in self.plot_windows:
                 window.close()
@@ -289,13 +300,15 @@ class MainWindow(QMainWindow):
             self.plot_windows = []
 
         if self.checkbox.isChecked():
-            self.plot_windows = [PlotWindow(self.flight_record, i+1) for i in range(self.num_flights_selector.value())]
+            self.plot_windows = [
+                PlotWindow(self.flight_record, i + 1)
+                for i in range(self.num_flights_selector.value())
+            ]
         else:
             window = PlotWindow(self.flight_record, self.num_flights_selector.value())
             self.plot_windows = [window]
         for window in self.plot_windows:
             window.show()
-
 
     def open_file_dialog(self):
         """
@@ -309,7 +322,7 @@ class MainWindow(QMainWindow):
         file_name = file_name.split("/")[-1]
         if file_name:
             self.browse_button.setText(file_name)
-        
+
         # Decoding the log file
         self.decode_log_file()
 
