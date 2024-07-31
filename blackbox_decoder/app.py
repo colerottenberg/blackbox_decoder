@@ -1,12 +1,8 @@
 """
 # BlackBox:
-BlackBoX is a flight log decoder for the Blue Vigil Powerboard. It is a tool that allows you to decode the flight log files and keep tracking of previous flight data.
-The tool is designed to take in a .log file and: 1. output a CSV for each respective field, 2. output individual flight log graphs, 3. output a summary of the flight data.
-The tool uses the the bitstring library to decode the binary data and the matplotlib library to plot the data. the
 """
 
 # Importing the GUI libraries
-from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QGuiApplication
 from PyQt6.QtWidgets import (
     QWidget,
