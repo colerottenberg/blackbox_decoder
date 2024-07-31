@@ -256,12 +256,6 @@ class Rollup(BaseLog):
             "battVoltX10Peak": ("uint:12", 12),
             "outVoltX10Avg": ("uint:12", 12),
             "outVoltX10Peak": ("uint:12", 12),
-            # "chgAcok": ("uint:1", 1),
-            # "chgAcokChanges": ("uint:6", 6),
-            # "chgStatus": ("uint:1", 1),
-            # "chgStatusChanges": ("uint:6", 6),
-            # "lowPower": ("uint:1", 1),
-            # "lowPowerChanges": ("uint:6", 6),
             "battOutKill": ("uint:1", 1),
             "battOutKillChanges": ("uint:6", 6),
             "filler": ("uint:8", 8),
@@ -478,7 +472,7 @@ class FlightRecord:
         """
         return self.log.get_name()
 
-    def to_dataframe(self, i: int = 0) -> pd.DataFrame:
+    def to_dataframe(self, i: int = 0) -> List[pd.DataFrame]:
         """
         This method converts the selected flight to a pandas DataFrame
 
@@ -488,6 +482,7 @@ class FlightRecord:
         Returns:
             List[pd.DataFrame]: A list of pandas DataFrames
         """
+        flights: List[pd.DataFrame] = []
         # TODO: Add detail data
         flight = [x for x in self.flights[i] if x.__class__.__name__ == "Rollup"]
         flight.sort(key=lambda x: x.structure["recNumb"])
@@ -496,9 +491,18 @@ class FlightRecord:
             for key, value in record.structure.items():
                 data[key].append(value)
 
-        df = pd.DataFrame(data)
-        # df.set_index("recNumb", inplace=True)
-        return df
+        flights.append(pd.DataFrame(data))
+
+        flight = [x for x in self.flights[i] if x.__class__.__name__ == "Detail"]
+        flight.sort(key=lambda x: x.structure["recNumb"])
+        data = {key: [] for key in flight[0].structure.keys()}
+        for record in flight:
+            for key, value in record.structure.items():
+                data[key].append(value)
+
+        flights.append(pd.DataFrame(data))
+
+        return flights
 
     def splice(self):
         """

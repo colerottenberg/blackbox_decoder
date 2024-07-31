@@ -7,15 +7,23 @@ The tool uses the the bitstring library to decode the binary data and the matplo
 
 # Importing the GUI libraries
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import *
-from PyQt6.QtWidgets import *
-from PyQt6.QtCore import *
-from PyQt6.QtWidgets import QWidget
+from PyQt6.QtGui import QGuiApplication
+from PyQt6.QtWidgets import (
+    QWidget,
+    QApplication,
+    QMainWindow,
+    QVBoxLayout,
+    QHBoxLayout,
+    QGridLayout,
+    QLabel,
+    QPushButton,
+    QCheckBox,
+    QSpinBox,
+    QFileDialog,
+    QMessageBox,
+    QFrame,
+)
 
-# Importing plotting libraries
-import matplotlib
-
-matplotlib.use("Qt5Agg")
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar,
@@ -26,6 +34,11 @@ from matplotlib.figure import Figure
 from blackbox_decoder.log import FlightRecord
 
 from datetime import timedelta
+from typing import List
+# Importing plotting libraries
+
+import matplotlib
+matplotlib.use("Qt5Agg")
 
 
 class MplCanvas(FigureCanvas):
@@ -39,36 +52,65 @@ class MplCanvas(FigureCanvas):
 class FlightRecordCanvas(FigureCanvas):
     """
     The FlighRecordCanvas class is a class that plots the flight record data
-    The Figure consists of 4 subplots:
-    1. Voltage Plot of: outVoltX10Avg, outVoltX10Peak, tethVoltX10Avg, tethVoltX10Peak, battVoltX10Avg, battVoltX10Peak
-    2. Current Plot of: tethCurrentX10Avg, tethCurrentX10Peak
-    3. Tether Flags Broken Plot of: tethReady, tethActive, tethGood, tethOn
-    4. Battery Flags Broken Plot of: battOn, battDrain, battKill
+    The Figure consists of 8 subplots:
+    - Group 1: Rollup Plots
+        - Voltage Plot
+        - Current Plot
+        - Tether Flags
+        - Battery Flags
+    - Group 2: Detail Plots
+        - Voltage Plot
+        - Current Plot
+        - Tether Flags
+        - Battery Flags
     """
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
-        self.ax1 = self.fig.add_subplot(221)
-        self.ax2 = self.fig.add_subplot(222)
-        self.ax3 = self.fig.add_subplot(223)
-        self.ax4 = self.fig.add_subplot(224)
+        self.ax1 = self.fig.add_subplot(241)
+        self.ax2 = self.fig.add_subplot(242)
+        self.ax3 = self.fig.add_subplot(243)
+        self.ax4 = self.fig.add_subplot(244)
+        self.ax5 = self.fig.add_subplot(245)
+        self.ax6 = self.fig.add_subplot(246)
+        self.ax7 = self.fig.add_subplot(247)
+        self.ax8 = self.fig.add_subplot(248)
 
         # Adding Titles and Labels
+
+        # Rollup Plots
         self.ax1.set_title("Voltage Plot")
-        self.ax1.set_xlabel("Record Number")
+        self.ax1.set_xlabel("Milliseconds")
         self.ax1.set_ylabel("Voltage (V)")
 
         self.ax2.set_title("Current Plot")
-        self.ax2.set_xlabel("Record Number")
+        self.ax2.set_xlabel("Milliseconds")
         self.ax2.set_ylabel("Current (A)")
 
         self.ax3.set_title("Tether Flags")
-        self.ax3.set_xlabel("Record Number")
+        self.ax3.set_xlabel("Milliseconds")
         self.ax3.set_ylabel("Flag")
 
         self.ax4.set_title("Battery Flags")
-        self.ax4.set_xlabel("Record Number")
+        self.ax4.set_xlabel("Milliseconds")
         self.ax4.set_ylabel("Flag")
+
+        # Detail Plots
+        self.ax5.set_title("Voltage Plot")
+        self.ax5.set_xlabel("Milliseconds")
+        self.ax5.set_ylabel("Voltage (V)")
+
+        self.ax6.set_title("Current Plot")
+        self.ax6.set_xlabel("Milliseconds")
+        self.ax6.set_ylabel("Current (A)")
+
+        self.ax7.set_title("Tether Flags")
+        self.ax7.set_xlabel("Milliseconds")
+        self.ax7.set_ylabel("Flag")
+
+        self.ax8.set_title("Battery Flags")
+        self.ax8.set_xlabel("Milliseconds")
+        self.ax8.set_ylabel("Flag")
 
         self.fig.tight_layout()
         super(FlightRecordCanvas, self).__init__(self.fig)
@@ -88,7 +130,8 @@ class PlotWindow(QMainWindow):
         self.setGeometry(0, 0, screen_rect.width(), screen_rect.height())
 
         # TODO: Add a functionality to handle multiple flight records
-        df = flight_record.to_dataframe(flight_number - 1)
+        df_list = flight_record.to_dataframe(flight_number - 1)
+        df = df_list[0]
 
         layout = QVBoxLayout()
 
@@ -103,7 +146,6 @@ class PlotWindow(QMainWindow):
         layout.addWidget(self.flight_record_canvas)
 
         # Plotting the data
-
         x: str = "entryTimeMsecs"
         voltage: List[str] = [
             "outVoltX10Avg",
@@ -120,7 +162,12 @@ class PlotWindow(QMainWindow):
         for c in current:
             df.plot(x=x, y=c, ax=self.flight_record_canvas.ax2, label=c)
 
-        tether_flags: List[str] = ["tethReady", "tethActive", "tethGood", "tethOn"]
+        tether_flags: List[str] = [
+            "tethReady",
+            "tethActive",
+            "tethGood",
+            "tethOn"
+        ]
         for t in tether_flags:
             df.plot(
                 x=x,
@@ -140,6 +187,47 @@ class PlotWindow(QMainWindow):
                 drawstyle="steps-post",
             )
 
+        # Detail Plots
+        df = df_list[1]
+        x = "recNumb"
+
+        voltage: List[str] = [
+            "tethVoltX10",
+            "battVoltX10",
+            "outVoltX10",
+        ]
+        for v in voltage:
+            df.plot(x=x, y=v, ax=self.flight_record_canvas.ax5, label=v)
+
+        current: List[str] = ["tethCurrentX10"]
+        for c in current:
+            df.plot(x=x, y=c, ax=self.flight_record_canvas.ax6, label=c)
+
+        tether_flags: List[str] = [
+            "tethReady",
+            "tethActive",
+            "tethGood",
+            "tethOn"
+        ]
+        for t in tether_flags:
+            df.plot(
+                x=x,
+                y=t,
+                ax=self.flight_record_canvas.ax7,
+                label=t,
+                drawstyle="steps-post",
+            )
+
+        battery_flags: List[str] = ["battOn", "battDrain", "battKill"]
+        for b in battery_flags:
+            df.plot(
+                x=x,
+                y=b,
+                ax=self.flight_record_canvas.ax8,
+                label=b,
+                drawstyle="steps-post",
+            )
+
         # Setting the layout
         widget = QWidget()
         widget.setLayout(layout)
@@ -148,14 +236,20 @@ class PlotWindow(QMainWindow):
 
 class MainWindow(QMainWindow):
     """
-    The MainWindow is the... main window of the application and contains the following design:
+    The MainWindow class is the main window of the BlackBox application.
     1. A title
     At the bottom of the window, there are two buttons:
-    1. Browse Button: Opens a file dialog to select the log file. When the file is selected, and the file is initially decoded, the button will display the file name. If the file does not decode correctly, the button will display an error message.
+    1. Browse Button:
+        1.1 Opens a file dialog to select the log file.
+        1.2 When the selected, and the file is initially decoded, the button will display the file name.
+        1.3 If the file does not decode correctly, the button will display an error message.
+    2. Decode Button:
+        2.1 Decodes the log file and displays the summary of the flight record.
+        2.2 If the file is not selected, the button will display an err message.
     If the file is decoded properly, the widgets above will allow for the user to decode the log file in a more advanced manner. allowing for a greater number of options. That can help the user to better understand the data.
     These options and displays include:
     - The number of recorded flights in the log file
-    - A checkbox that allows the user to view the data either in separate windows or concatenated into one window.
+    - A checkbox of single or multiple flight decoding
     """
 
     def __init__(self, *args, **kwargs):
@@ -168,18 +262,14 @@ class MainWindow(QMainWindow):
 
         # Main Layout is a vertical layout
         pagelayout = QVBoxLayout()
-
-        # The button layout is a horizontal layout that sits at the bottom of the window
         button_layout = QHBoxLayout()
-
-        # The summary layout is a vertical layout that sits at the top of the window
         summary_layout = QGridLayout()
 
         # Setting up the settings widgets
         """
         The settings around decoding the log file are as follows:
         - Choose the number of flights to decode (default is the latest flight)
-        - A checkbox to choose whether to decode the log file in a single window or multiple windows
+        - A checkbox for single or multiple flight decoding
         """
         settings_layout = QGridLayout()
 
@@ -256,7 +346,11 @@ class MainWindow(QMainWindow):
         Decodes the lof file and outputs the data into a pandas dataframe
         """
         if not self.file_name:
-            QMessageBox.warning(self, "Error", "Please select a log file to decode")
+            QMessageBox.warning(
+                self,
+                "Error",
+                "Please select a log file to decode"
+            )
             return
         # Decoding the log file
         self.flight_record = FlightRecord(self.file_name)
@@ -304,7 +398,10 @@ class MainWindow(QMainWindow):
                 for i in range(self.num_flights_selector.value())
             ]
         else:
-            window = PlotWindow(self.flight_record, self.num_flights_selector.value())
+            window = PlotWindow(
+                self.flight_record,
+                self.num_flights_selector.value()
+            )
             self.plot_windows = [window]
         for window in self.plot_windows:
             window.show()
