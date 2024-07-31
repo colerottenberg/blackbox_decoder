@@ -23,9 +23,8 @@ from matplotlib.backends.backend_qt5agg import (
 from matplotlib.figure import Figure
 
 # Importing the decoding libraries
-from blackbox_decoder.log import *
+from blackbox_decoder.log import FlightRecord
 
-import datetime
 from datetime import timedelta
 
 
