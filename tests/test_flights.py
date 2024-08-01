@@ -1,5 +1,6 @@
 from blackbox_decoder.log import FlightRecord
 from datetime import timedelta
+from typing import List
 
 import pandas as pd
 
@@ -27,8 +28,8 @@ def test_chrono_order():
     For each of the 46 flights, turn them to a dataframe and check the "entryTimeMsecs" column for an ascending order
     """
     # Empty numpy array to store the entryTimeMsecs of each flight
-    empty = pd.DataFrame()
+
     for i in range(len(record) - 1):
-        flight = record.to_dataframe(i)
-        entryTimeMsecs = flight["entryTimeMsecs"]
-        assert (entryTimeMsecs == entryTimeMsecs.sort_values()).all()
+        list_of_dataframes: List[pd.DataFrame] = record.to_dataframe(i)
+        df = list_of_dataframes[0]
+        assert df["recNumb"].is_monotonic_increasing

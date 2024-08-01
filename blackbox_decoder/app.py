@@ -122,10 +122,9 @@ class PlotWindow(QMainWindow):
         # Setting size to the entire screen
         # Get the screen resolution
         screen = QGuiApplication.primaryScreen()
-        screen_rect = screen.availableGeometry()
+        screen_rect = screen.availableGeometry() # I have zero idea why this attribute is not known by pyright.
         self.setGeometry(0, 0, screen_rect.width(), screen_rect.height())
 
-        # TODO: Add a functionality to handle multiple flight records
         df_list = flight_record.to_dataframe(flight_number - 1)
         df = df_list[0]
 

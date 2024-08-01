@@ -483,7 +483,6 @@ class FlightRecord:
             List[pd.DataFrame]: A list of pandas DataFrames
         """
         flights: List[pd.DataFrame] = []
-        # TODO: Add detail data
         flight = [x for x in self.flights[i] if x.__class__.__name__ == "Rollup"]
         flight.sort(key=lambda x: x.structure["recNumb"])
         data = {key: [] for key in flight[0].structure.keys()}

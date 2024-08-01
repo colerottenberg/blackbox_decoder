@@ -13,7 +13,7 @@ update:
   poetry update
 
 test:
-  poetry run pytest
+  poetry run python -m pytest
 
 help:
   @just --list
