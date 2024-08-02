@@ -166,6 +166,10 @@ class Detail(BaseLog):
         # Reverse the structure to its original structure in the C code
         self.structure = dict(reversed(list(self.structure.items())))
 
+        # Divided all current and voltage values by 10
+        for key in ["tethCurrentX10", "tethVoltX10", "battVoltX10", "outVoltX10"]:
+            self.structure[key] /= 10
+
     def get_size_struct(self) -> Dict[str, Tuple[str, int]]:
         """
         The size and structure of the General Info packet
@@ -215,6 +219,11 @@ class Rollup(BaseLog):
 
         # Reverse the structure to its original structure in the C code
         self.structure = dict(reversed(list(self.structure.items())))
+
+        # Divided all current and voltage values by 10
+        for key in ["tethCurrentX10Avg", "tethCurrentX10Peak", "tethVoltX10Avg", "tethVoltX10Peak", "battVoltX10Avg", "battVoltX10Peak", "outVoltX10Avg", "outVoltX10Peak"]:
+            self.structure[key] /= 10
+
         assert self.s.pos == self.s.len
 
     def get_size_struct(self) -> Dict[str, Tuple[str, int]]:
