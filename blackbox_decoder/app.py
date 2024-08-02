@@ -183,45 +183,46 @@ class PlotWindow(QMainWindow):
             )
 
         # Detail Plots
-        df = df_list[1]
-        x = "recNumb"
+        if len(df_list) > 1:
+            df = df_list[1]
+            x = "recNumb"
 
-        voltage: List[str] = [
-            "tethVoltX10",
-            "battVoltX10",
-            "outVoltX10",
-        ]
-        for v in voltage:
-            df.plot(x=x, y=v, ax=self.flight_record_canvas.ax5, label=v)
+            voltage: List[str] = [
+                "tethVoltX10",
+                "battVoltX10",
+                "outVoltX10",
+            ]
+            for v in voltage:
+                df.plot(x=x, y=v, ax=self.flight_record_canvas.ax5, label=v)
 
-        current: List[str] = ["tethCurrentX10"]
-        for c in current:
-            df.plot(x=x, y=c, ax=self.flight_record_canvas.ax6, label=c)
+            current: List[str] = ["tethCurrentX10"]
+            for c in current:
+                df.plot(x=x, y=c, ax=self.flight_record_canvas.ax6, label=c)
 
-        tether_flags: List[str] = [
-            "tethReady",
-            "tethActive",
-            "tethGood",
-            "tethOn"
-        ]
-        for t in tether_flags:
-            df.plot(
-                x=x,
-                y=t,
-                ax=self.flight_record_canvas.ax7,
-                label=t,
-                drawstyle="steps-post",
-            )
+            tether_flags: List[str] = [
+                "tethReady",
+                "tethActive",
+                "tethGood",
+                "tethOn"
+            ]
+            for t in tether_flags:
+                df.plot(
+                    x=x,
+                    y=t,
+                    ax=self.flight_record_canvas.ax7,
+                    label=t,
+                    drawstyle="steps-post",
+                )
 
-        battery_flags: List[str] = ["battOn", "battDrain", "battKill"]
-        for b in battery_flags:
-            df.plot(
-                x=x,
-                y=b,
-                ax=self.flight_record_canvas.ax8,
-                label=b,
-                drawstyle="steps-post",
-            )
+            battery_flags: List[str] = ["battOn", "battDrain", "battKill"]
+            for b in battery_flags:
+                df.plot(
+                    x=x,
+                    y=b,
+                    ax=self.flight_record_canvas.ax8,
+                    label=b,
+                    drawstyle="steps-post",
+                )
 
         # Setting the layout
         widget = QWidget()
