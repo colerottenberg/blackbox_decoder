@@ -32,10 +32,10 @@ def test_detail():
     assert detail["battOn"] == 0
     assert detail["battKill"] == 1
     assert detail["battDrain"] == 1
-    assert detail["tethCurrentX10"] == 511
+    assert detail["tethCurrentX10"] == 51.1
     assert detail["tethVoltX10"] == 0
     assert detail["battVoltX10"] == 0
-    assert detail["outVoltX10"] == 1536
+    assert detail["outVoltX10"] == 153.6
     assert detail["battOutKill"] == 1
     assert detail["filler"] == 0
 
@@ -62,14 +62,14 @@ def test_rollup():
     assert rollup["battDrainChanges"] == 0
     assert rollup["battKill"] == 0
     assert rollup["battKillChanges"] == 0
-    assert rollup["tethCurrentX10Avg"] == -131
-    assert rollup["tethCurrentX10Peak"] == 3
+    assert rollup["tethCurrentX10Avg"] == -13.1
+    assert rollup["tethCurrentX10Peak"] == 0.3
     assert rollup["tethVoltX10Avg"] == 0
-    assert rollup["tethVoltX10Peak"] == 1638
+    assert rollup["tethVoltX10Peak"] == 163.8
     assert rollup["battVoltX10Avg"] == 0
-    assert rollup["battVoltX10Peak"] == 3743
+    assert rollup["battVoltX10Peak"] == 374.3
     assert rollup["outVoltX10Avg"] == 0
-    assert rollup["outVoltX10Peak"] == 4016
+    assert rollup["outVoltX10Peak"] == 401.6
     assert rollup["battOutKill"] == 0
     assert rollup["battOutKillChanges"] == 63
     assert rollup["filler"] == 255
