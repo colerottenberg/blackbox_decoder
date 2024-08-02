@@ -32,4 +32,10 @@ def test_chrono_order():
     for i in range(len(record) - 1):
         list_of_dataframes: List[pd.DataFrame] = record.to_dataframe(i)
         df = list_of_dataframes[0]
+        assert df["entryTimeMsecs"].is_monotonic_increasing
         assert df["recNumb"].is_monotonic_increasing
+        if len(list_of_dataframes) > 1:
+            # TODO: Check the chronology of the second millisecond detail flight info and fixed logging issue with grabbing realtime data
+            df = list_of_dataframes[1]
+            # assert df["entryTimeMsecs"].is_monotonic_increasing
+            assert df["recNumb"].is_monotonic_increasing

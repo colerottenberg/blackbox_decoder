@@ -494,12 +494,14 @@ class FlightRecord:
 
         flight = [x for x in self.flights[i] if x.__class__.__name__ == "Detail"]
         flight.sort(key=lambda x: x.structure["recNumb"])
-        data = {key: [] for key in flight[0].structure.keys()}
-        for record in flight:
-            for key, value in record.structure.items():
-                data[key].append(value)
-
-        flights.append(pd.DataFrame(data))
+        try:
+            data = {key: [] for key in flight[0].structure.keys()}
+            for record in flight:
+                for key, value in record.structure.items():
+                    data[key].append(value)
+            flights.append(pd.DataFrame(data))
+        except IndexError:
+            pass
 
         return flights
 
