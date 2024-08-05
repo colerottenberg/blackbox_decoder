@@ -536,16 +536,19 @@ class FlightRecord:
         battery_kill: pd.Series = pd.Series()
         battery_drain: pd.Series = pd.Series()
 
+        # Defining lambda functions to ~safely~ concatenate the data
+        safe_concat = lambda series_list: pd.concat([s for s in series_list if not s.empty]) if any(not s.empty for s in series_list) else pd.Series()
+
         data: pd.DataFrame
         for data in data_list:
             data.set_index("recNumb", inplace=True)
-            tether_ready = pd.concat([data["tethReady"], tether_ready])
-            tether_active = pd.concat([data["tethActive"], tether_active])
-            tether_good = pd.concat([data["tethGood"], tether_good])
-            tether_on = pd.concat([data["tethOn"], tether_on])
-            battery_on = pd.concat([data["battOn"], battery_on])
-            battery_kill = pd.concat([data["battKill"], battery_kill])
-            battery_drain = pd.concat([data["battDrain"], battery_drain])
+            tether_ready = safe_concat([data["tethReady"], tether_ready])
+            tether_active = safe_concat([data["tethActive"], tether_active])
+            tether_good = safe_concat([data["tethGood"], tether_good])
+            tether_on = safe_concat([data["tethOn"], tether_on])
+            battery_on = safe_concat([data["battOn"], battery_on])
+            battery_kill = safe_concat([data["battKill"], battery_kill])
+            battery_drain = safe_concat([data["battDrain"], battery_drain])
         # Add the flags from each data from to the series object
 
         # Sort the data by the record number
@@ -566,11 +569,11 @@ class FlightRecord:
         powerflags: pd.DataFrame = pd.DataFrame(
             {"tethActive": tether_active, "battOn": battery_on}
         )
-        switch = powerflags[
+        switch: pd.Series = powerflags[
             (powerflags["tethActive"] == 0) & (powerflags["battOn"] == 1)
         ]
         # Numba compliant count
-        switch_count = switch.shape[0]
+        switch_count = switch.size
 
         # We need to count the number of rollups and detail logs but in some flights, there are no detail logs
         logs_counts: np.ndarray = np.zeros(2)
@@ -582,7 +585,7 @@ class FlightRecord:
         time = pd.Series()
         for data in data_list:
             data.reset_index(inplace=True)
-            time = pd.concat([data["entryTimeMsecs"], time])
+            time = safe_concat([data["entryTimeMsecs"], time])
         time.sort_values(inplace=True)
         time = pd.to_datetime(time, unit="ms")
         flight_time: timedelta = time.iloc[-1] - time.iloc[0]
