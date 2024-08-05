@@ -27,13 +27,15 @@ from matplotlib.backends.backend_qt5agg import (
 from matplotlib.figure import Figure
 
 # Importing the decoding libraries
-from blackbox_decoder.log import FlightRecord
+from blackbox_decoder.log import FlightRecord, Summary
 
 from datetime import timedelta
 from typing import List
+
 # Importing plotting libraries
 
 import matplotlib
+
 matplotlib.use("Qt5Agg")
 
 
@@ -92,6 +94,7 @@ class PlotWindow(QMainWindow):
 
     The Summary of the Battery and Tether Flags display:
     """
+
     def __init__(self, flight_record: FlightRecord, flight_number: int = 1):
         super().__init__()
         self.setWindowTitle(f"Flight Record {flight_number}")
@@ -100,13 +103,31 @@ class PlotWindow(QMainWindow):
         # Setting size to the entire screen
         # Get the screen resolution
         screen = QGuiApplication.primaryScreen()
-        screen_rect = screen.availableGeometry() # I have zero idea why this attribute is not known by pyright.
+        screen_rect = (
+            screen.availableGeometry()
+        )  # I have zero idea why this attribute is not known by pyright.
         self.setGeometry(0, 0, screen_rect.width(), screen_rect.height())
 
         df_list = flight_record.to_dataframe(flight_number - 1)
+        summary: Summary = flight_record.summary(df_list)
         df = df_list[0]
 
+        # Creating the layout
         layout = QVBoxLayout()
+
+        summary_layout = QGridLayout()
+        summary_layout.addWidget(
+            QLabel(f"Tether Activity: {summary.tether_activity}"), 0, 0
+        )
+        summary_layout.addWidget(
+            QLabel(f"Battery Activity: {summary.battery_activity}"), 1, 0
+        )
+        summary_layout.addWidget(QLabel(f"Flight Time: {summary.flight_time}"), 2, 0)
+        summary_layout.addWidget(QLabel(f"Switch Count: {summary.switch_count}"), 0, 1)
+        summary_layout.addWidget(QLabel(f"Rollup Count: {summary.rollup_count}"), 1, 1)
+        summary_layout.addWidget(QLabel(f"Detail Count: {summary.detail_count}"), 2, 1)
+
+        layout.addLayout(summary_layout)
 
         # Adding the Flight Record Canvas
         self.rollup = FlightRecordCanvas()
@@ -275,11 +296,7 @@ class MainWindow(QMainWindow):
         Decodes the lof file and outputs the data into a pandas dataframe
         """
         if not self.file_name:
-            QMessageBox.warning(
-                self,
-                "Error",
-                "Please select a log file to decode"
-            )
+            QMessageBox.warning(self, "Error", "Please select a log file to decode")
             return
         # Decoding the log file
         self.flight_record = FlightRecord(self.file_name)
@@ -327,10 +344,7 @@ class MainWindow(QMainWindow):
                 for i in range(self.num_flights_selector.value())
             ]
         else:
-            window = PlotWindow(
-                self.flight_record,
-                self.num_flights_selector.value()
-            )
+            window = PlotWindow(self.flight_record, self.num_flights_selector.value())
             self.plot_windows = [window]
         for window in self.plot_windows:
             window.show()
