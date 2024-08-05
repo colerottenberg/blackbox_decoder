@@ -3,7 +3,7 @@
 default:
   @just --list
 
-run-decoder:
+run:
   poetry run blackbox-decoder
 
 install:

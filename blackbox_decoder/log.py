@@ -1,12 +1,17 @@
+# Python libs
 import csv
 import datetime
 from typing import Dict, List, Tuple, Union
+from dataclasses import dataclass
+
+# Imported libraries
 import numpy as np
 import pandas as pd
-
 from bitstring import BitStream
 
+# Internal imports
 from blackbox_decoder.parse import parse_log
+
 
 SIGMA = 8
 
@@ -424,6 +429,20 @@ class FlightRecord:
      In its current implementation, a log file can contain the records of multiple flights. In order to accurately splice the records of each flight, we need to know when each flight starts and ends. This is where the FlightRecord class comes in.
 
     The Details log updates every millisecond and the Rollup log updates every second AND every minute. The FlightInfo log updates per flight. We need to be able to first split the minute rollup if there are multiple flights in the log. If there are multiple flights in the log, we need to split the minute rollup logs into two flights. Using the corresponding recNumbs in the minute rollup logs, we can determine the start and end of each flight. We can then splice together the second and minute rollup logs for each flight.
+
+    Atributes:
+    -   log (Log): The log object that contains the data of the drone
+    -   flights (List[List[BaseLog]]): A list of flights where each flight is a list of BaseLog objects
+    
+    Methods:
+    -   __init__(input: Union[str, Log]): The constructor for the FlightRecord class
+    -   __len__(): This method returns the number of flights in the FlightRecord
+    -   get_flight_time(): This method returns the total flight time of the drone
+    -   get_drone_name(): This method returns the name of the drone
+    -   to_dataframe(i: int = 0): This method converts the selected flight to a pandas DataFrame
+    -   splice(): This method will use the flight events begRecNumb to determine
+        each flight We will loop though the flight events and hold the entry of the begRecNumb and the next begRecNumb in the flight events
+        If there are items within the comb list that are between the two begRecNumb values, we will add them to the flight list
     """
 
     def __init__(self, input: Union[str, Log]):
@@ -456,6 +475,64 @@ class FlightRecord:
             int: The number of flights in the FlightRecord
         """
         return len(self.flights)
+
+    def summary(self, data_list: List[pd.DataFrame] = self.to_dataframe()):
+        """
+        The summary method helps to summarize the events of the drone's power flags
+
+        The flags are as follows:
+        -   tethReady: describes the state of the tether ready flag
+        -   tethActive: describes the state of the tether active flag
+        -   tethGood: describes the state of the tether good flag
+        -   tethOn: describes the state of the tether on flag
+        -   battOn: describes the state of the battery on flag
+        -   battKill: describes the state of the battery kill flag
+        -   battDrain: describes the state of the battery drain flag
+
+        Args:
+            None
+        """
+
+        # If there are no flights, return
+        if len(self) == 0:
+            return
+        
+        # Add the flags from each data from to the series object 
+        tether_ready = pd.Series()
+        tether_active = pd.Series()
+        tether_good = pd.Series()
+        tether_on = pd.Series()
+        battery_on = pd.Series()
+        battery_kill = pd.Series()
+        battery_drain = pd.Series()
+
+        data: pd.DataFrame
+        for data in data_list:
+            data.sort_values(by="recNumb", inplace=True)
+            tether_ready = tether_ready.append(data["tethReady"])
+            tether_active = tether_active.append(data["tethActive"])
+            tether_good = tether_good.append(data["tethGood"])
+            tether_on = tether_on.append(data["tethOn"])
+            battery_on = battery_on.append(data["battOn"])
+            battery_kill = battery_kill.append(data["battKill"])
+            battery_drain = battery_drain.append(data["battDrain"])
+
+        """
+        We need to count the changes from 0 to 1 and 1 to 0 for each flag
+        """
+
+        tether_activity = tether_active.diff().abs().sum()
+        battery_activity = battery_on.diff().abs().sum()
+
+        # We need to now count when the tether is inactive and the battery is on
+        powerflags: pd.DataFrame = pd.DataFrame(tether_active, battery_on)
+        switch = powerflags[(powerflags["tethActive"] == 0) & (powerflags["battOn"] == 1)]
+        # Numba compliant count
+        switch_count = switch.shape[0]
+
+        
+
+
 
     def get_flight_time(self) -> datetime.timedelta:
         """
@@ -535,3 +612,9 @@ class FlightRecord:
 
             if len(flight) > 0:
                 self.flights.append(flight)
+
+
+@dataclass
+class Summary:
+    
+

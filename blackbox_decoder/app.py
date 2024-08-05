@@ -65,16 +65,9 @@ class FlightRecordCanvas(FigureCanvas):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.ax1 = self.fig.add_subplot(241)
         self.ax2 = self.fig.add_subplot(242)
-        self.ax3 = self.fig.add_subplot(243)
-        self.ax4 = self.fig.add_subplot(244)
-        self.ax5 = self.fig.add_subplot(245)
-        self.ax6 = self.fig.add_subplot(246)
-        self.ax7 = self.fig.add_subplot(247)
-        self.ax8 = self.fig.add_subplot(248)
 
         # Adding Titles and Labels
 
-        # Rollup Plots
         self.ax1.set_title("Voltage Plot")
         self.ax1.set_xlabel("Milliseconds")
         self.ax1.set_ylabel("Voltage (V)")
@@ -83,37 +76,22 @@ class FlightRecordCanvas(FigureCanvas):
         self.ax2.set_xlabel("Milliseconds")
         self.ax2.set_ylabel("Current (A)")
 
-        self.ax3.set_title("Tether Flags")
-        self.ax3.set_xlabel("Milliseconds")
-        self.ax3.set_ylabel("Flag")
-
-        self.ax4.set_title("Battery Flags")
-        self.ax4.set_xlabel("Milliseconds")
-        self.ax4.set_ylabel("Flag")
-
-        # Detail Plots
-        self.ax5.set_title("Voltage Plot")
-        self.ax5.set_xlabel("Milliseconds")
-        self.ax5.set_ylabel("Voltage (V)")
-
-        self.ax6.set_title("Current Plot")
-        self.ax6.set_xlabel("Milliseconds")
-        self.ax6.set_ylabel("Current (A)")
-
-        self.ax7.set_title("Tether Flags")
-        self.ax7.set_xlabel("Milliseconds")
-        self.ax7.set_ylabel("Flag")
-
-        self.ax8.set_title("Battery Flags")
-        self.ax8.set_xlabel("Milliseconds")
-        self.ax8.set_ylabel("Flag")
-
         self.fig.tight_layout()
         super(FlightRecordCanvas, self).__init__(self.fig)
         self.setParent(parent)
 
 
 class PlotWindow(QMainWindow):
+    """
+    The PlotWindow class is a class that displays the important data of the flight record.
+
+    The PlotWindow class consists of:
+    -   Voltage Plot
+    -   Current Plot
+    -   Tether and Battery Summary
+
+    The Summary of the Battery and Tether Flags display:
+    """
     def __init__(self, flight_record: FlightRecord, flight_number: int = 1):
         super().__init__()
         self.setWindowTitle(f"Flight Record {flight_number}")
@@ -131,14 +109,14 @@ class PlotWindow(QMainWindow):
         layout = QVBoxLayout()
 
         # Adding the Flight Record Canvas
-        self.flight_record_canvas = FlightRecordCanvas()
+        self.rollup = FlightRecordCanvas()
 
         # Adding the Navigation Toolbar
-        toolbar = NavigationToolbar(self.flight_record_canvas, self)
+        toolbar = NavigationToolbar(self.rollup, self)
 
         # Adding the widgets to the layout
         layout.addWidget(toolbar)
-        layout.addWidget(self.flight_record_canvas)
+        layout.addWidget(self.rollup)
 
         # Plotting the data
         x: str = "entryTimeMsecs"
@@ -151,39 +129,19 @@ class PlotWindow(QMainWindow):
             "battVoltX10Peak",
         ]
         for v in voltage:
-            df.plot(x=x, y=v, ax=self.flight_record_canvas.ax1, label=v)
+            df.plot(x=x, y=v, ax=self.rollup.ax1, label=v)
 
         current: List[str] = ["tethCurrentX10Avg", "tethCurrentX10Peak"]
         for c in current:
-            df.plot(x=x, y=c, ax=self.flight_record_canvas.ax2, label=c)
-
-        tether_flags: List[str] = [
-            "tethReady",
-            "tethActive",
-            "tethGood",
-            "tethOn"
-        ]
-        for t in tether_flags:
-            df.plot(
-                x=x,
-                y=t,
-                ax=self.flight_record_canvas.ax3,
-                label=t,
-                drawstyle="steps-post",
-            )
-
-        battery_flags: List[str] = ["battOn", "battDrain", "battKill"]
-        for b in battery_flags:
-            df.plot(
-                x=x,
-                y=b,
-                ax=self.flight_record_canvas.ax4,
-                label=b,
-                drawstyle="steps-post",
-            )
+            df.plot(x=x, y=c, ax=self.rollup.ax2, label=c)
 
         # Detail Plots
         if len(df_list) > 1:
+            self.detail = FlightRecordCanvas()
+            detail_toolbar = NavigationToolbar(self.detail, self)
+            layout.addWidget(detail_toolbar)
+            layout.addWidget(self.detail)
+
             df = df_list[1]
             x = "recNumb"
 
@@ -193,36 +151,11 @@ class PlotWindow(QMainWindow):
                 "outVoltX10",
             ]
             for v in voltage:
-                df.plot(x=x, y=v, ax=self.flight_record_canvas.ax5, label=v)
+                df.plot(x=x, y=v, ax=self.detail.ax1, label=v)
 
             current: List[str] = ["tethCurrentX10"]
             for c in current:
-                df.plot(x=x, y=c, ax=self.flight_record_canvas.ax6, label=c)
-
-            tether_flags: List[str] = [
-                "tethReady",
-                "tethActive",
-                "tethGood",
-                "tethOn"
-            ]
-            for t in tether_flags:
-                df.plot(
-                    x=x,
-                    y=t,
-                    ax=self.flight_record_canvas.ax7,
-                    label=t,
-                    drawstyle="steps-post",
-                )
-
-            battery_flags: List[str] = ["battOn", "battDrain", "battKill"]
-            for b in battery_flags:
-                df.plot(
-                    x=x,
-                    y=b,
-                    ax=self.flight_record_canvas.ax8,
-                    label=b,
-                    drawstyle="steps-post",
-                )
+                df.plot(x=x, y=c, ax=self.detail.ax2, label=c)
 
         # Setting the layout
         widget = QWidget()
@@ -273,7 +206,7 @@ class MainWindow(QMainWindow):
         self.plot_windows: List[PlotWindow] = []
 
         # Internal Variables
-        self.flight_record = None
+        self.flight_record: FlightRecord
         self.file_name = None
 
         self.flight_count: int = 0
