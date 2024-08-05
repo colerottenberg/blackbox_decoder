@@ -537,7 +537,11 @@ class FlightRecord:
         battery_drain: pd.Series = pd.Series()
 
         # Defining lambda functions to ~safely~ concatenate the data
-        safe_concat = lambda series_list: pd.concat([s for s in series_list if not s.empty]) if any(not s.empty for s in series_list) else pd.Series()
+        safe_concat = lambda series_list: (
+            pd.concat([s for s in series_list if not s.empty])
+            if any(not s.empty for s in series_list)
+            else pd.Series()
+        )
 
         data: pd.DataFrame
         for data in data_list:
