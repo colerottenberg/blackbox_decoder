@@ -37,5 +37,5 @@ def test_chrono_order():
         if len(list_of_dataframes) > 1:
             # TODO: Check the chronology of the second millisecond detail flight info and fixed logging issue with grabbing realtime data
             df = list_of_dataframes[1]
-            # assert df["entryTimeMsecs"].is_monotonic_increasing
+            assert df["entryTimeMsecs"].is_monotonic_increasing
             assert df["recNumb"].is_monotonic_increasing
